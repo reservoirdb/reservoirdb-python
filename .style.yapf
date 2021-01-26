@@ -1,0 +1,7 @@
+[style]
+use_tabs = true
+spaces_around_default_or_named_assign = true
+continuation_align_style = fixed
+blank_lines_around_top_level_definition = 1
+column_limit = 120
+spaces_before_comment = 1
