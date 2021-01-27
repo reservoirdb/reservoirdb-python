@@ -37,3 +37,8 @@ class CreateTable(Command):
 @dataclass
 class CreateSchema(Command):
 	name: str
+
+@dataclass
+class InsertData(Command):
+	table: TableRef
+	data_ref: str
