@@ -10,6 +10,7 @@ aiohttp = "^3.7.3"
 dacite = "^1.6.0"
 pyarrow = "^3.0.0"
 pandas = "^1.2.1"
+typing-extensions = "^3.7.4"
 
 [tool.poetry.dev-dependencies]
 pytest = "^5.2"

@@ -1,4 +1,5 @@
-from typing import TypeVar, Type, Optional, Protocol, Dict, Any, Sequence
+from typing import TypeVar, Type, Optional, Dict, Any, Sequence
+from typing_extensions import Protocol
 from dataclasses import dataclass, asdict
 import json
 from io import BytesIO
