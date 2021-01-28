@@ -7,7 +7,7 @@ from dotenv import load_dotenv
 from pyarrow import Table as ArrowTable
 
 from reservoirdb.session import ReservoirSession
-from reservoirdb.commands import CreateSchema, CreateTable, GetTable, TableRef, Table, Column, InsertData
+from reservoirdb.commands import CreateSchema, CreateTable, GetTable, TableRef, Table, Column, ColumnType, InsertData
 
 load_dotenv()
 
@@ -26,7 +26,7 @@ async def test_create_table(session: ReservoirSession) -> None:
 	schema = 'schema_' + str(uuid4()).replace('-', '')
 	table = TableRef(schema, 'my_table')
 	table_structure = Table([
-		Column('test', 'Int64', True),
+		Column('test', ColumnType.INT64, True),
 	])
 
 	await session.txn([

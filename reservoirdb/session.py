@@ -1,4 +1,4 @@
-from typing import TypeVar, Type, Literal, Optional, Protocol, Dict, Any, Sequence
+from typing import TypeVar, Type, Optional, Protocol, Dict, Any, Sequence
 from dataclasses import dataclass, asdict
 import json
 from io import BytesIO
@@ -24,14 +24,12 @@ class ReservoirException(Exception):
 class UnauthenticatedException(ReservoirException):
 	pass
 
-_TokenType = Literal['Bearer', 'AdminToken']
-
 class ReservoirSession:
 	def __init__(
 		self,
 		region: str,
 		provider: str,
-		token_type: _TokenType,
+		token_type: str,
 		token: Optional[str] = None,
 	) -> None:
 		self._base_url = f'https://{region}.{provider}.reservoirdb.com'

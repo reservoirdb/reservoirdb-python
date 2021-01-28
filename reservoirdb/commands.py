@@ -1,5 +1,6 @@
 from dataclasses import dataclass, field
-from typing import List, Literal
+from typing import List
+from enum import Enum
 
 @dataclass
 class Command:
@@ -13,7 +14,8 @@ class TableRef:
 	schema: str
 	name: str
 
-ColumnType = Literal['Int64']
+class ColumnType(str, Enum):
+	INT64 = 'Int64'
 
 @dataclass
 class Column:
