@@ -21,7 +21,7 @@ class TxnRequest:
 	endpoint = '/db/txn'
 	method = 'POST'
 
-	commands: list[Command]
+	commands: List[Command]
 
 @dataclass
 class TxnResponse:
