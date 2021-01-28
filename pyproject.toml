@@ -5,7 +5,7 @@ description = ""
 authors = [ "Ruan Pearce-Authers <ruan@reservoirdb.com>" ]
 
 [tool.poetry.dependencies]
-python = "^3.6"
+python = "^3.7.1"
 aiohttp = "^3.7.3"
 dacite = "^1.6.0"
 pyarrow = "^3.0.0"
