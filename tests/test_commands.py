@@ -21,16 +21,24 @@ async def session() -> ReservoirSession:
 		password = os.environ['RESERVOIR_PASSWORD'],
 	)
 
+@pytest.fixture
+async def random_schema(session: ReservoirSession) -> str:
+	name = 'schema_' + str(uuid4()).replace('-', '')
+
+	await session.txn([
+		CreateSchema(name),
+	])
+
+	return name
+
 @pytest.mark.asyncio
-async def test_create_table(session: ReservoirSession) -> None:
-	schema = 'schema_' + str(uuid4()).replace('-', '')
-	table = TableRef(schema, 'my_table')
+async def test_create_table(session: ReservoirSession, random_schema: str) -> None:
+	table = TableRef(random_schema, 'my_table')
 	table_structure = Table([
 		Column('test', ColumnType.INT64, True),
 	])
 
 	await session.txn([
-		CreateSchema(schema),
 		CreateTable(table, table_structure),
 	])
 
@@ -40,7 +48,18 @@ async def test_create_table(session: ReservoirSession) -> None:
 
 	assert response.results[0]['data']['columns'] == asdict(table_structure)['columns']
 
-	df = await session.query_pandas(f'select count(*) as n from {schema}__my_table')
+@pytest.mark.asyncio
+async def test_insert_data(session: ReservoirSession, random_schema: str) -> None:
+	table = TableRef(random_schema, 'my_table')
+	table_structure = Table([
+		Column('test', ColumnType.INT64, True),
+	])
+
+	await session.txn([
+		CreateTable(table, table_structure),
+	])
+
+	df = await session.query_pandas(f'select count(*) as n from {random_schema}__my_table')
 	assert df['n'].values[0] == 0
 
 	await session.txn(
@@ -54,6 +73,6 @@ async def test_create_table(session: ReservoirSession) -> None:
 		},
 	)
 
-	df = await session.query_pandas(f'select count(*) as n, sum(test) as sum from {schema}__my_table')
+	df = await session.query_pandas(f'select count(*) as n, sum(test) as sum from {random_schema}__my_table')
 	assert df['n'].values[0] == 3
 	assert df['sum'].values[0] == 6
