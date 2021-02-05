@@ -34,8 +34,8 @@ jobs:
         env:
           RESERVOIR_PROVIDER: aws
           RESERVOIR_REGION: eu-west-1
-          RESERVOIR_ACCOUNT: 4932305e-bfa4-45f6-b9d7-c1afd65c4165
-          RESERVOIR_USER: ruan
+          RESERVOIR_ACCOUNT: sdk-tests
+          RESERVOIR_USER: test
           RESERVOIR_PASSWORD: ${{ secrets.RESERVOIR_PASSWORD }}
 
       - name: Run typecheck
