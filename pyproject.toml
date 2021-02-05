@@ -20,5 +20,5 @@ pytest-asyncio = "^0.14.0"
 python-dotenv = "^0.15.0"
 
 [build-system]
-requires = [ "poetry-core >= 1.0.0" ]
+requires = [ "poetry" ]
 build-backend = "poetry.core.masonry.api"
