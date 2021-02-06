@@ -9,7 +9,7 @@ class AuthRequest:
 	method = 'POST'
 
 	account: str
-	username: str
+	user: str
 	password: str
 
 @dataclass
