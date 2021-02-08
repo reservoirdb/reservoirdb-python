@@ -7,7 +7,8 @@ from dotenv import load_dotenv
 from pyarrow import Table as ArrowTable
 
 from reservoirdb.session import ReservoirSession
-from reservoirdb.commands import CreateSchema, CreateTable, GetTable, TableRef, Table, Column, ColumnType, InsertData
+from reservoirdb.commands import CreateSchema, CreateTable, GetTable, InsertData
+from reservoirdb.state import Table, TableRef, Column, ColumnType
 
 load_dotenv()
 

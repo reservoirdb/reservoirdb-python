@@ -1,6 +1,6 @@
 from dataclasses import dataclass, field
-from typing import List
-from enum import Enum
+
+from .state import *
 
 @dataclass
 class Command:
@@ -8,24 +8,6 @@ class Command:
 
 	def __post_init__(self) -> None:
 		self.type = type(self).__name__
-
-@dataclass
-class TableRef:
-	schema: str
-	name: str
-
-class ColumnType(str, Enum):
-	INT64 = 'Int64'
-
-@dataclass
-class Column:
-	name: str
-	ty: ColumnType
-	nullable: bool
-
-@dataclass
-class Table:
-	columns: List[Column]
 
 @dataclass
 class GetTable(Command):
