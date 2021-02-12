@@ -1,0 +1,41 @@
+name: PyPI
+
+on: workflow_dispatch
+
+jobs:
+  release:
+    runs-on: ubuntu-20.04
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.8
+
+      - name: Set up Poetry
+        uses: abatilo/actions-poetry@v2.0.0
+        with:
+          poetry-version: 1.1.4
+
+      - name: Install dependencies
+        run: |
+          pip install poetry-core==1.0.0
+          poetry install
+
+      - name: Run tests
+        run: poetry run pytest
+        env:
+          RESERVOIR_PROVIDER: aws
+          RESERVOIR_REGION: eu-west-1
+          RESERVOIR_ACCOUNT: sdk-testing-py
+          RESERVOIR_USER: test
+          RESERVOIR_PASSWORD: ${{ secrets.RESERVOIR_PASSWORD }}
+
+      - name: Run typecheck
+        run: poetry run mypy .
+
+      - name: Publish
+        run: poetry publish --build -u __token__ -p ${{ secrets.PYPI_TOKEN }}
