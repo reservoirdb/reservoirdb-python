@@ -35,7 +35,7 @@ jobs:
         env:
           RESERVOIR_PROVIDER: aws
           RESERVOIR_REGION: eu-west-1
-          RESERVOIR_ACCOUNT: sdk-testing-py
+          RESERVOIR_ACCOUNT: sdk-testing-python
           RESERVOIR_USER: test
           RESERVOIR_PASSWORD: ${{ secrets.RESERVOIR_PASSWORD }}
 
