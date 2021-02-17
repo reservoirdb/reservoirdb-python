@@ -4,10 +4,7 @@ from .state import *
 
 @dataclass
 class Command:
-	type: str = field(init = False)
-
-	def __post_init__(self) -> None:
-		self.type = type(self).__name__
+	pass
 
 @dataclass
 class GetTable(Command):

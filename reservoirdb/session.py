@@ -102,7 +102,7 @@ class ReservoirSession:
 			multipart_data.add_field(name, sink.getvalue().to_pybytes())
 
 		return await self._request(
-			TxnRequest(list(commands)),
+			TxnRequest([CommandWrapper(type(c).__name__, c) for c in commands]),
 			TxnResponse,
 			multipart_data = multipart_data,
 		)

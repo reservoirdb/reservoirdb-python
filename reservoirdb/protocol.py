@@ -17,11 +17,16 @@ class AuthResponse:
 	token: str
 
 @dataclass
+class CommandWrapper:
+	type: str
+	params: Command
+
+@dataclass
 class TxnRequest:
 	endpoint = '/db/txn'
 	method = 'POST'
 
-	commands: List[Command]
+	commands: List[CommandWrapper]
 
 @dataclass
 class TxnResponse:

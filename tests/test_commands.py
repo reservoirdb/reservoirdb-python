@@ -47,7 +47,7 @@ async def test_create_table(session: ReservoirSession, random_schema: str) -> No
 		GetTable(table),
 	])
 
-	assert response.results[0]['columns'] == asdict(table_structure)['columns']
+	assert response.results[0]['data']['columns'] == asdict(table_structure)['columns']
 
 @pytest.mark.asyncio
 async def test_insert_data(session: ReservoirSession, random_schema: str) -> None:
