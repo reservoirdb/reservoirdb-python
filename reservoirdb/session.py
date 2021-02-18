@@ -1,22 +1,21 @@
-from typing import TypeVar, Type, Optional, Dict, Any, Sequence
+from typing import TypeVar, Type, Optional, Dict, Any, Sequence, Callable, List
 from typing_extensions import Protocol
 from dataclasses import dataclass, asdict
 import json
 from io import BytesIO
+from enum import Enum
 
 import aiohttp
 from dacite.core import from_dict
-from pyarrow import Table, ipc, BufferOutputStream
+from dacite.config import Config
+from pyarrow import Table as ArrowTable, ipc, BufferOutputStream
 from pandas import DataFrame
 
-from .protocol import *
-from .commands import Command
+from reservoirdb_protocol import *
+import reservoirdb_protocol.types
+from reservoirdb_protocol.types import *
 
-class Request(Protocol):
-	endpoint: str
-	method: str
-
-_RequestType = TypeVar('_RequestType', bound = Request)
+_RequestType = TypeVar('_RequestType')
 _ResponseType = TypeVar('_ResponseType')
 
 class ReservoirException(Exception):
@@ -24,6 +23,8 @@ class ReservoirException(Exception):
 
 class UnauthenticatedException(ReservoirException):
 	pass
+
+_dacite_config = Config(cast = [Enum])
 
 class ReservoirSession:
 	def __init__(
@@ -48,12 +49,20 @@ class ReservoirSession:
 		password: str,
 	) -> 'ReservoirSession':
 		session = cls(region, provider, 'Bearer')
-		auth_res = await session._request(AuthRequest(account, user, password), AuthResponse, requires_auth = False)
+		auth_res = await session._request(
+			'POST',
+			'/auth/login',
+			AuthLoginRequest(account, UserRef(user), password),
+			AuthLoginResponse,
+			requires_auth = False,
+		)
 		session._token = auth_res.token
 		return session
 
 	async def _request(
 		self,
+		method: str,
+		endpoint: str,
 		request: _RequestType,
 		response_type: Type[_ResponseType],
 		multipart_data: Optional[aiohttp.FormData] = None,
@@ -73,25 +82,29 @@ class ReservoirSession:
 			request_args['json'] = asdict(request)
 
 		async with aiohttp.request(
-			request.method,
-			self._base_url + request.endpoint,
+			method,
+			self._base_url + endpoint,
 			headers = headers,
 			**request_args,
 		) as res:
 			if res.status != 200:
-				raise ReservoirException(f'{request.endpoint} failed, status {res.status}: {await res.text()}')
+				raise ReservoirException(f'{endpoint} failed, status {res.status}: {await res.text()}')
 
-			if response_type == Table:
+			if response_type == ArrowTable:
 				reader = ipc.open_stream(await res.read())
-				return Table.from_batches([b for b in reader], reader.schema) # type: ignore
+				return ArrowTable.from_batches([b for b in reader], reader.schema) # type: ignore
 			else:
-				return from_dict(response_type, await res.json())
+				json_data = await res.json()
+				if response_type == dict:
+					return json_data # type: ignore
+
+				return from_dict(response_type, json_data, _dacite_config)
 
 	async def txn(
 		self,
 		commands: Sequence[Command],
-		arrow_data: Dict[str, Table] = {},
-	) -> TxnResponse:
+		arrow_data: Dict[str, ArrowTable] = {},
+	) -> List[Optional[TxnResult]]:
 		multipart_data = aiohttp.FormData()
 		for name, table in arrow_data.items():
 			sink = BufferOutputStream()
@@ -101,16 +114,25 @@ class ReservoirSession:
 
 			multipart_data.add_field(name, sink.getvalue().to_pybytes())
 
-		return await self._request(
-			TxnRequest([CommandWrapper(type(c).__name__, c) for c in commands]),
-			TxnResponse,
+		res = await self._request(
+			'POST',
+			'/db/txn',
+			TxnRequest([TaggedCommand(type(c).__name__, c) for c in commands]),
+			dict,
 			multipart_data = multipart_data,
 		)
 
-	async def query(self, query: str) -> Table:
+		return [
+			from_dict(getattr(reservoirdb_protocol.types, r['type']), r['data'], _dacite_config) if r else None
+			for r in res['results']
+		]
+
+	async def query(self, query: str) -> ArrowTable:
 		return await self._request(
+			'POST',
+			'/db/query',
 			QueryRequest(query),
-			Table,
+			ArrowTable,
 		)
 
 	async def query_pandas(self, query: str) -> DataFrame:

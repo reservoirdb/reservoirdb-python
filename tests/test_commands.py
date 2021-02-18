@@ -7,8 +7,7 @@ from dotenv import load_dotenv
 from pyarrow import Table as ArrowTable
 
 from reservoirdb.session import ReservoirSession
-from reservoirdb.commands import CreateSchema, CreateTable, GetTable, InsertData
-from reservoirdb.state import Table, TableRef, Column, ColumnType
+from reservoirdb_protocol.types import *
 
 load_dotenv()
 
@@ -23,8 +22,8 @@ async def session() -> ReservoirSession:
 	)
 
 @pytest.fixture
-async def random_schema(session: ReservoirSession) -> str:
-	name = 'schema_' + str(uuid4()).replace('-', '')
+async def random_schema(session: ReservoirSession) -> SchemaRef:
+	name = SchemaRef('schema_' + str(uuid4()).replace('-', ''))
 
 	await session.txn([
 		CreateSchema(name),
@@ -33,28 +32,28 @@ async def random_schema(session: ReservoirSession) -> str:
 	return name
 
 @pytest.mark.asyncio
-async def test_create_table(session: ReservoirSession, random_schema: str) -> None:
+async def test_create_table(session: ReservoirSession, random_schema: SchemaRef) -> None:
 	table = TableRef(random_schema, 'my_table')
 	table_structure = Table([
 		Column('test', ColumnType.INT64, True),
-	])
+	], None)
 
 	await session.txn([
 		CreateTable(table, table_structure),
 	])
 
-	response = await session.txn([
+	results = await session.txn([
 		GetTable(table),
 	])
 
-	assert response.results[0]['data']['columns'] == asdict(table_structure)['columns']
+	assert results[0] == table_structure
 
 @pytest.mark.asyncio
-async def test_insert_data(session: ReservoirSession, random_schema: str) -> None:
+async def test_insert_data(session: ReservoirSession, random_schema: SchemaRef) -> None:
 	table = TableRef(random_schema, 'my_table')
 	table_structure = Table([
 		Column('test', ColumnType.INT64, True),
-	])
+	], None)
 
 	await session.txn([
 		CreateTable(table, table_structure),
