@@ -7,7 +7,7 @@ from dotenv import load_dotenv
 from pyarrow import Table as ArrowTable
 
 from reservoirdb.session import ReservoirSession
-from reservoirdb_protocol.types import *
+from reservoirdb_protocol import *
 
 load_dotenv()
 

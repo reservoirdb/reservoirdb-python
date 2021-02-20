@@ -11,9 +11,8 @@ from dacite.config import Config
 from pyarrow import Table as ArrowTable, ipc, BufferOutputStream
 from pandas import DataFrame
 
+import reservoirdb_protocol
 from reservoirdb_protocol import *
-import reservoirdb_protocol.types
-from reservoirdb_protocol.types import *
 
 _RequestType = TypeVar('_RequestType')
 _ResponseType = TypeVar('_ResponseType')
@@ -25,6 +24,11 @@ class UnauthenticatedException(ReservoirException):
 	pass
 
 _dacite_config = Config(cast = [Enum])
+
+@dataclass
+class _TaggedCommand:
+	type: str
+	params: Command
 
 class ReservoirSession:
 	def __init__(
@@ -117,13 +121,13 @@ class ReservoirSession:
 		res = await self._request(
 			'POST',
 			'/db/txn',
-			TxnRequest([TaggedCommand(type(c).__name__, c) for c in commands]),
+			TxnRequest([_TaggedCommand(type(c).__name__, c) for c in commands]),
 			dict,
 			multipart_data = multipart_data,
 		)
 
 		return [
-			from_dict(getattr(reservoirdb_protocol.types, r['type']), r['data'], _dacite_config) if r else None
+			from_dict(getattr(reservoirdb_protocol, r['type']), r['data'], _dacite_config) if r else None
 			for r in res['results']
 		]
 
