@@ -59,7 +59,7 @@ async def test_insert_data(session: ReservoirSession, random_schema: SchemaRef) 
 		CreateTable(table, table_structure),
 	])
 
-	df = await session.query_pandas(f'select count(*) as n from {random_schema}__my_table')
+	df = await session.query_pandas(f'select count(*) as n from {random_schema}.my_table')
 	assert df['n'].values[0] == 0
 
 	await session.txn(
@@ -73,6 +73,6 @@ async def test_insert_data(session: ReservoirSession, random_schema: SchemaRef) 
 		},
 	)
 
-	df = await session.query_pandas(f'select count(*) as n, sum(test) as sum from {random_schema}__my_table')
+	df = await session.query_pandas(f'select count(*) as n, sum(test) as sum from {random_schema}.my_table')
 	assert df['n'].values[0] == 3
 	assert df['sum'].values[0] == 6
