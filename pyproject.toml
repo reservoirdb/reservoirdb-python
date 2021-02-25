@@ -6,7 +6,7 @@ authors = [ "Ruan Pearce-Authers <ruan@reservoirdb.com>" ]
 include = [ "reservoirdb/py.typed" ]
 
 [tool.poetry.dependencies]
-python = "^3.7.1"
+python = "^3.9"
 aiohttp = "^3.7.3"
 dacite = "^1.6.0"
 pyarrow = "^3.0.0"
