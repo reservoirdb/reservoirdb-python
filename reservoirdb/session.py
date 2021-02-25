@@ -23,12 +23,7 @@ class ReservoirException(Exception):
 class UnauthenticatedException(ReservoirException):
 	pass
 
-_dacite_config = Config(cast = [Enum])
-
-@dataclass
-class _TaggedCommand:
-	type: str
-	params: Command
+_dacite_config = Config(cast = [Enum], strict_unions_match = True)
 
 class ReservoirSession:
 	def __init__(
