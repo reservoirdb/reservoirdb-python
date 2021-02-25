@@ -99,9 +99,6 @@ class ReservoirSession:
 				return ArrowTable.from_batches([b for b in reader], reader.schema) # type: ignore
 			else:
 				json_data = await res.json()
-				if response_type == dict:
-					return json_data # type: ignore
-
 				return from_dict(response_type, json_data, _dacite_config)
 
 	async def txn(
@@ -121,15 +118,12 @@ class ReservoirSession:
 		res = await self._request(
 			'POST',
 			'/db/txn',
-			TxnRequest([_TaggedCommand(type(c).__name__, c) for c in commands]),
-			dict,
+			TxnRequest(list(commands)),
+			TxnResponse,
 			multipart_data = multipart_data,
 		)
 
-		return [
-			from_dict(getattr(reservoirdb_protocol, r['type']), r['data'], _dacite_config) if r else None
-			for r in res['results']
-		]
+		return res.results
 
 	async def query(self, query: str) -> ArrowTable:
 		return await self._request(

@@ -296,7 +296,7 @@ typing-extensions = "^3.7.4"
 type = "git"
 url = "https://github.com/reservoirdb/reservoirdb-protocol-python.git"
 reference = "main"
-resolved_reference = "825443c548f93de9fdccaa56834d4eeb2973fe78"
+resolved_reference = "8eb85aa0f75a9ddd834aae3876c576fdae4e54de"
 
 [[package]]
 name = "six"
