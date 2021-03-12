@@ -129,7 +129,7 @@ async def test_user_role_setup(
 
 	await session.txn([
 		AssignUserRoles(random_user, [random_role]),
-		GrantGlobalSchemaPermissions(random_role, SchemaPermissions.READ_TABLE)
+		GrantSchemaPermissions(random_role, random_schema, SchemaPermissions.READ_TABLE)
 	])
 
 	await user_session.query_pandas(f'select * from {random_schema}.limited_access')
