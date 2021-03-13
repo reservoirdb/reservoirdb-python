@@ -1,4 +1,4 @@
-from typing import TypeVar, Type, Optional, Dict, Any, Sequence, Callable, List
+from typing import TypeVar, Type, Optional, Dict, Any, Sequence, Callable, List, Awaitable
 from typing_extensions import Protocol
 from dataclasses import dataclass, asdict
 import json
@@ -65,6 +65,7 @@ class ReservoirSession:
 		request: _RequestType,
 		response_type: Type[_ResponseType],
 		multipart_data: Optional[aiohttp.FormData] = None,
+		response_parser: Optional[Callable[[aiohttp.ClientResponse], Awaitable[_ResponseType]]] = None,
 		requires_auth: bool = True,
 	) -> _ResponseType:
 		headers = {}
@@ -89,9 +90,8 @@ class ReservoirSession:
 			if res.status != 200:
 				raise ReservoirException(f'{endpoint} failed, status {res.status}: {await res.text()}')
 
-			if response_type == ArrowTable:
-				reader = ipc.open_stream(await res.read())
-				return ArrowTable.from_batches(reader, reader.schema) # type: ignore
+			if response_parser:
+				return await response_parser(res)
 			else:
 				json_data = await res.json()
 				return from_dict(response_type, json_data, _dacite_config)
@@ -120,12 +120,18 @@ class ReservoirSession:
 
 		return res.results
 
+	@staticmethod
+	async def _query_response_parser(res: aiohttp.ClientResponse) -> ArrowTable:
+		reader = ipc.open_stream(await res.read())
+		return ArrowTable.from_batches(reader, reader.schema)
+
 	async def query(self, query: str) -> ArrowTable:
 		return await self._request(
 			'POST',
 			'/db/query',
 			QueryRequest(query),
 			ArrowTable,
+			response_parser = self._query_response_parser,
 		)
 
 	async def query_pandas(self, query: str) -> DataFrame:
