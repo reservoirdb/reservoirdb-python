@@ -91,7 +91,7 @@ class ReservoirSession:
 
 			if response_type == ArrowTable:
 				reader = ipc.open_stream(await res.read())
-				return ArrowTable.from_batches([b for b in reader], reader.schema) # type: ignore
+				return ArrowTable.from_batches(reader, reader.schema) # type: ignore
 			else:
 				json_data = await res.json()
 				return from_dict(response_type, json_data, _dacite_config)
