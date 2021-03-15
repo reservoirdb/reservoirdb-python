@@ -123,7 +123,7 @@ class ReservoirSession:
 	@staticmethod
 	async def _query_response_parser(res: aiohttp.ClientResponse) -> ArrowTable:
 		reader = ipc.open_stream(await res.read())
-		return ArrowTable.from_batches(reader, reader.schema)
+		return reader.read_all()
 
 	async def query(self, query: str) -> ArrowTable:
 		return await self._request(
