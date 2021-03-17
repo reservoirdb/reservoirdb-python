@@ -60,6 +60,16 @@ async def random_role(session: ReservoirSession) -> RoleRef:
 
 	return name
 
+@pytest.fixture
+async def random_compute_cluster(session: ReservoirSession) -> ComputeClusterRef:
+	name = ComputeClusterRef('testcluster_' + str(uuid4()).replace('-', ''))
+
+	await session.txn([
+		CreateComputeCluster(name),
+	])
+
+	return name
+
 @pytest.mark.asyncio
 async def test_create_table(session: ReservoirSession, random_schema: SchemaRef) -> None:
 	table = TableRef(random_schema, 'my_table')
@@ -78,7 +88,11 @@ async def test_create_table(session: ReservoirSession, random_schema: SchemaRef)
 	assert results[0] == table_structure
 
 @pytest.mark.asyncio
-async def test_insert_data(session: ReservoirSession, random_schema: SchemaRef) -> None:
+async def test_insert_data(
+	session: ReservoirSession,
+	random_schema: SchemaRef,
+	random_compute_cluster: ComputeClusterRef,
+) -> None:
 	table = TableRef(random_schema, 'my_table')
 	table_structure = Table([
 		Column('test', ColumnType.INT64, True),
@@ -100,6 +114,7 @@ async def test_insert_data(session: ReservoirSession, random_schema: SchemaRef) 
 				'test': [1, 2, 3],
 			}),
 		},
+		run_on = random_compute_cluster,
 	)
 
 	df = await session.query_pandas(f'select count(*) as n, sum(test) as sum from {random_schema}.my_table')

@@ -31,11 +31,13 @@ class ReservoirSession:
 		region: str,
 		provider: str,
 		token_type: str,
+		default_compute_cluster: Optional[ComputeClusterRef] = None,
 		token: Optional[str] = None,
 	) -> None:
 		self._base_url = f'https://{region}.{provider}.reservoirdb.com'
 		self._token = token
 		self._token_type = token_type
+		self._default_compute_cluster = default_compute_cluster
 
 	@classmethod
 	async def connect(
@@ -46,8 +48,9 @@ class ReservoirSession:
 		account: str,
 		user: str,
 		password: str,
+		default_compute_cluster: Optional[ComputeClusterRef] = None,
 	) -> 'ReservoirSession':
-		session = cls(region, provider, 'Bearer')
+		session = cls(region, provider, 'Bearer', default_compute_cluster = default_compute_cluster)
 		auth_res = await session._request(
 			'POST',
 			'/auth/login',
@@ -100,6 +103,7 @@ class ReservoirSession:
 		self,
 		commands: Sequence[Command],
 		arrow_data: Dict[str, ArrowTable] = {},
+		run_on: Optional[ComputeClusterRef] = None,
 	) -> List[Optional[TxnResult]]:
 		multipart_data = aiohttp.FormData()
 		for name, table in arrow_data.items():
@@ -113,7 +117,7 @@ class ReservoirSession:
 		res = await self._request(
 			'POST',
 			'/db/txn',
-			TxnRequest(list(commands)),
+			TxnRequest(list(commands), run_on or self._default_compute_cluster),
 			TxnResponse,
 			multipart_data = multipart_data,
 		)
@@ -125,15 +129,23 @@ class ReservoirSession:
 		reader = ipc.open_stream(await res.read())
 		return reader.read_all()
 
-	async def query(self, query: str) -> ArrowTable:
+	async def query(
+		self,
+		query: str,
+		run_on: Optional[ComputeClusterRef] = None,
+	) -> ArrowTable:
 		return await self._request(
 			'POST',
 			'/db/query',
-			QueryRequest(query),
+			QueryRequest(query, run_on or self._default_compute_cluster),
 			ArrowTable,
 			response_parser = self._query_response_parser,
 		)
 
-	async def query_pandas(self, query: str) -> DataFrame:
-		table = await self.query(query)
+	async def query_pandas(
+		self,
+		query: str,
+		run_on: Optional[ComputeClusterRef] = None,
+	) -> DataFrame:
+		table = await self.query(query, run_on)
 		return table.to_pandas()
