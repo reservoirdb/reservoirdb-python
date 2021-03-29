@@ -19,7 +19,7 @@ pytest = "^6.2"
 yapf = "^0.31.0"
 mypy = "^0.812"
 pytest-asyncio = "^0.14.0"
-python-dotenv = "^0.15.0"
+python-dotenv = "^0.16.0"
 
 [build-system]
 requires = [ "poetry-core >= 1.0.0" ]
