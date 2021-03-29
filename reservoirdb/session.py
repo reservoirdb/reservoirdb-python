@@ -32,12 +32,14 @@ class ReservoirSession:
 		provider: str,
 		token_type: str,
 		default_compute_cluster: Optional[ComputeClusterRef] = None,
+		default_schema: Optional[SchemaRef] = None,
 		token: Optional[str] = None,
 	) -> None:
 		self._base_url = f'https://{region}.{provider}.reservoirdb.com'
 		self._token = token
 		self._token_type = token_type
 		self._default_compute_cluster = default_compute_cluster
+		self._catalog_context = CatalogContext(default_catalog = None, default_schema = default_schema)
 
 	@classmethod
 	async def connect(
@@ -49,8 +51,16 @@ class ReservoirSession:
 		user: str,
 		password: str,
 		default_compute_cluster: Optional[ComputeClusterRef] = None,
+		default_schema: Optional[SchemaRef] = None,
 	) -> 'ReservoirSession':
-		session = cls(region, provider, 'Bearer', default_compute_cluster = default_compute_cluster)
+		session = cls(
+			region,
+			provider,
+			'Bearer',
+			default_compute_cluster = default_compute_cluster,
+			default_schema = default_schema,
+		)
+
 		auth_res = await session._request(
 			'POST',
 			'/auth/login',
@@ -133,11 +143,12 @@ class ReservoirSession:
 		self,
 		query: str,
 		run_on: Optional[ComputeClusterRef] = None,
+		catalog_context: Optional[CatalogContext] = None,
 	) -> ArrowTable:
 		return await self._request(
 			'POST',
 			'/db/query',
-			QueryRequest(query, run_on or self._default_compute_cluster),
+			QueryRequest(query, run_on or self._default_compute_cluster, catalog_context or self._catalog_context),
 			ArrowTable,
 			response_parser = self._query_response_parser,
 		)

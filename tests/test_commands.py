@@ -1,6 +1,7 @@
 from uuid import uuid4
 from dataclasses import asdict
 import os
+from typing import Any, Dict
 
 import pytest
 from dotenv import load_dotenv
@@ -17,6 +18,7 @@ async def new_session(
 	account: str = os.environ['RESERVOIR_ACCOUNT'],
 	user: str = os.environ['RESERVOIR_USER'],
 	password: str = os.environ['RESERVOIR_PASSWORD'],
+	**kwargs: Any,
 ) -> ReservoirSession:
 	return await ReservoirSession.connect(
 		provider = provider,
@@ -24,6 +26,7 @@ async def new_session(
 		account = account,
 		user = user,
 		password = password,
+		**kwargs,
 	)
 
 @pytest.fixture
@@ -148,3 +151,22 @@ async def test_user_role_setup(
 	])
 
 	await user_session.query_pandas(f'select * from {random_schema}.limited_access')
+
+@pytest.mark.asyncio
+async def test_default_catalog_context(
+	session: ReservoirSession,
+	random_schema: SchemaRef,
+	random_user: UserRef,
+	random_role: RoleRef,
+) -> None:
+	table = TableRef(random_schema, 'bare_table_name')
+	table_structure = Table([
+		Column('test', ColumnType.INT64, True),
+	], None)
+
+	await session.txn([
+		CreateTable(table, table_structure),
+	])
+
+	session_with_default = await new_session(default_schema = random_schema)
+	await session_with_default.query_pandas(f'select * from bare_table_name')
