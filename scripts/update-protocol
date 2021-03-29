@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+set -e
+
+rm -rf .venv/lib/site-packages/reservoirdb_protocol*
+poetry update reservoirdb_protocol
