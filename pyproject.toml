@@ -9,7 +9,7 @@ include = [ "reservoirdb/py.typed" ]
 python = "^3.9"
 aiohttp = "^3.7.3"
 dacite = "^1.6.0"
-pyarrow = "^3.0.0"
+pyarrow = ">=3,<10"
 pandas = "^1.2.2"
 typing-extensions = "^3.7.4"
 reservoirdb_protocol = { git = "https://github.com/reservoirdb/reservoirdb-protocol-python.git", branch = "main" }
